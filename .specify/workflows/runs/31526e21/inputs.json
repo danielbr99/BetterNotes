@@ -1,0 +1,7 @@
+{
+  "inputs": {
+    "spec": "spec.md",
+    "integration": "gemini",
+    "scope": "full"
+  }
+}

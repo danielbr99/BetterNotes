@@ -1,50 +1,45 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- 
+Sync Impact Report:
+- Version change: N/A -> 1.0.0
+- List of modified principles:
+  - PRINCIPLE_1: Spec-First Development
+  - PRINCIPLE_2: Automatic Documentation
+  - PRINCIPLE_3: Data Integrity & Validation
+  - PRINCIPLE_4: Test-First Discipline
+  - PRINCIPLE_5: Simplicity & Local-First
+- Added sections: Core Principles, Additional Constraints, Governance
+- Templates requiring updates: ✅ plan-template.md, ✅ spec-template.md, ✅ tasks-template.md
+- Follow-up TODOs: None
+-->
+
+# Pro Notes System Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-First Development
+All features MUST start with a machine-readable specification (OpenAPI 3.1) and a natural language feature spec before any implementation code is written. The contract is the source of truth for all API interactions.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Automatic Documentation
+The system MUST provide interactive API documentation (Swagger/ReDoc) that stays in sync with the implementation. Any drift between implementation and the OpenAPI contract is considered a critical failure.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Data Integrity & Validation
+Every input into the system MUST be validated against the defined schemas. We prioritize data correctness over "guesswork" parsing; invalid data MUST be rejected with clear error messages.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First Discipline
+A feature implementation is not complete without automated tests. We prefer writing contract and integration tests that verify the specification before the implementation is finalized.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Simplicity & Local-First
+The system is designed for local-first usage. Dependencies should be minimal, and the setup process must be straightforward (e.g., using SQLite). We avoid unnecessary complexity in favor of maintainable, clean code.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Additional Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- **Technology Stack**: Python 3.12+, FastAPI, SQLAlchemy, SQLite.
+- **Documentation**: All technical specs must be written in English.
+- **Versioning**: Semantic versioning (SemVer) is mandatory for API and documentation releases.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- **Amendments**: Changes to this constitution require a version bump and an update to all dependent templates.
+- **Compliance**: All tasks and plans must be reviewed against these principles during the `speckit-analyze` phase.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-04-27 | **Last Amended**: 2026-04-27

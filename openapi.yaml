@@ -1,0 +1,190 @@
+openapi: 3.1.0
+info:
+  title: API de Notas Pro
+  description: Un sistema de gestión de notas desarrollado bajo estándares SDD.
+  version: 1.0.0
+  contact:
+    name: Daniel
+    email: daniel@tuempresa.com
+
+servers:
+  - url: http://localhost:8000
+    description: Servidor de desarrollo local
+
+security:
+  - OAuth2PasswordBearer: []
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Autenticación
+      summary: Registrar un nuevo usuario
+      operationId: registrarUsuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Usuario registrado con éxito.
+        '400':
+          description: El usuario ya existe o datos inválidos.
+
+  /auth/token:
+    post:
+      tags:
+        - Autenticación
+      summary: Obtener token de acceso
+      operationId: loginParaToken
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Token obtenido con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Credenciales incorrectas.
+
+  /notas:
+    get:
+      tags:
+        - Notas
+      summary: Obtener todas las notas
+      description: Retorna una lista de las notas del usuario autenticado.
+      operationId: listarNotas
+      responses:
+        '200':
+          description: Una lista de notas obtenida con éxito.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Nota'
+        '401':
+          description: No autorizado.
+    post:
+      tags:
+        - Notas
+      summary: Crear una nueva nota
+      description: Permite al usuario autenticado crear una nota.
+      operationId: crearNota
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Nota'
+      responses:
+        '201':
+          description: Nota creada con éxito.
+        '400':
+          description: Datos de entrada inválidos.
+        '401':
+          description: No autorizado.
+          
+  /notas/{id}:
+    get:
+      tags:
+        - Notas
+      summary: Obtener una nota específica
+      description: Recupera los detalles de una nota del usuario autenticado.
+      operationId: obtenerNotaPorId
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID único de la nota a recuperar.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Nota encontrada y retornada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Nota'
+        '401':
+          description: No autorizado.
+        '404':
+          description: La nota solicitada no existe o no pertenece al usuario.
+
+components:
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: /auth/token
+          scopes: {}
+  schemas:
+    Nota:
+      type: object
+      required:
+        - titulo
+        - contenido
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        titulo:
+          type: string
+          example: "Reunión de Prácticas"
+        contenido:
+          type: string
+          example: "Discutir el avance del proyecto SDD."
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+    Error:
+      type: object
+      required:
+        - codigo
+        - mensaje
+      properties:
+        codigo:
+          type: string
+          example: "NOT_FOUND"
+        mensaje:
+          type: string
+          example: "El recurso solicitado no pudo ser localizado."
