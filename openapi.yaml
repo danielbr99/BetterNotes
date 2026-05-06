@@ -63,70 +63,304 @@ paths:
         '401':
           description: Credenciales incorrectas.
 
-  /notas:
+  /entries:
     get:
       tags:
-        - Notas
-      summary: Obtener todas las notas
-      description: Retorna una lista de las notas del usuario autenticado.
-      operationId: listarNotas
+        - Entries
+      summary: Obtener todas las entradas (Notas y Tareas)
+      description: Retorna una lista de las entradas del usuario autenticado con soporte para filtrado y ordenamiento.
+      operationId: listarEntries
+      parameters:
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [note, task]
+        - name: status_column
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high]
+        - name: is_encrypted
+          in: query
+          schema:
+            type: boolean
+        - name: folder_id
+          in: query
+          schema:
+            type: integer
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [fecha_creacion, due_date, priority, titulo]
+            default: fecha_creacion
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: q
+          in: query
+          description: "Keyword search in title and content"
+          schema:
+            type: string
       responses:
         '200':
-          description: Una lista de notas obtenida con éxito.
+          description: Una lista de entradas obtenida con éxito.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Nota'
+                  $ref: '#/components/schemas/Entry'
         '401':
           description: No autorizado.
     post:
       tags:
-        - Notas
-      summary: Crear una nueva nota
-      description: Permite al usuario autenticado crear una nota.
-      operationId: crearNota
+        - Entries
+      summary: Crear una nueva entrada
+      operationId: crearEntry
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Nota'
+              $ref: '#/components/schemas/Entry'
       responses:
         '201':
-          description: Nota creada con éxito.
+          description: Entrada creada con éxito.
         '400':
           description: Datos de entrada inválidos.
-        '401':
-          description: No autorizado.
-          
-  /notas/{id}:
+  
+  /entries/{id}:
     get:
       tags:
-        - Notas
-      summary: Obtener una nota específica
-      description: Recupera los detalles de una nota del usuario autenticado.
-      operationId: obtenerNotaPorId
+        - Entries
+      summary: Obtener una entrada específica
+      operationId: obtenerEntryPorId
       parameters:
         - name: id
           in: path
           required: true
-          description: ID único de la nota a recuperar.
           schema:
             type: integer
-            format: int64
       responses:
         '200':
-          description: Nota encontrada y retornada.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Nota'
-        '401':
-          description: No autorizado.
+                $ref: '#/components/schemas/Entry'
         '404':
-          description: La nota solicitada no existe o no pertenece al usuario.
+          description: No encontrado.
+    patch:
+      tags:
+        - Entries
+      summary: Actualizar una entrada específica (metadata o contenido)
+      operationId: actualizarEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryUpdate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '404':
+          description: No encontrado.
+    delete:
+      tags:
+        - Entries
+      summary: Eliminar una entrada específica
+      operationId: eliminarEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado.
+
+  /assets:
+    post:
+      tags:
+        - Assets
+      summary: Subir un recurso multimedia (imagen/dibujo)
+      operationId: subirAsset
+      parameters:
+        - name: entry_id
+          in: query
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+
+  /assets/{asset_id}:
+    get:
+      tags:
+        - Assets
+      summary: Descargar un recurso multimedia
+      operationId: obtenerAsset
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recurso obtenido.
+        '404':
+          description: No encontrado.
+    delete:
+      tags:
+        - Assets
+      summary: Eliminar un recurso multimedia
+      operationId: eliminarAsset
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Eliminado.
+
+  /columns:
+    get:
+      tags:
+        - Kanban
+      summary: Obtener todas las columnas del tablero Kanban
+      operationId: listarColumnas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KanbanColumn'
+    post:
+      tags:
+        - Kanban
+      summary: Crear una nueva columna Kanban
+      operationId: crearColumna
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KanbanColumnCreate'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KanbanColumn'
+
+  /columns/{id}:
+    delete:
+      tags:
+        - Kanban
+      summary: Eliminar una columna Kanban
+      operationId: eliminarColumna
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado.
+
+  /folders:
+    get:
+      tags:
+        - Organization
+      summary: Obtener todas las carpetas
+      operationId: listarCarpetas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Folder'
+    post:
+      tags:
+        - Organization
+      summary: Crear una nueva carpeta
+      operationId: crearCarpeta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderCreate'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Folder'
+
+  /folders/{id}:
+    delete:
+      tags:
+        - Organization
+      summary: Eliminar una carpeta
+      operationId: eliminarCarpeta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado.
 
 components:
   securitySchemes:
@@ -137,11 +371,11 @@ components:
           tokenUrl: /auth/token
           scopes: {}
   schemas:
-    Nota:
+    Entry:
       type: object
       required:
         - titulo
-        - contenido
+        - type
       properties:
         id:
           type: integer
@@ -152,11 +386,137 @@ components:
           example: "Reunión de Prácticas"
         contenido:
           type: string
+          description: "Rich text content or encrypted blob"
           example: "Discutir el avance del proyecto SDD."
+        type:
+          type: string
+          enum: [note, task]
+        is_encrypted:
+          type: boolean
+          default: false
+        encryption_metadata:
+          type: string
+          description: "JSON string containing client-side encryption metadata (IV, salt, algorithm hints)"
         fecha_creacion:
           type: string
           format: date-time
           readOnly: true
+        fecha_modificacion:
+          type: string
+          format: date-time
+          readOnly: true
+        version:
+          type: integer
+          default: 1
+          readOnly: true
+        tags:
+          type: array
+          items:
+            type: string
+        folder_id:
+          type: integer
+        # Kanban/Task specific fields (only for type=task)
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status_column:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+    
+    EntryUpdate:
+      type: object
+      properties:
+        titulo:
+          type: string
+        contenido:
+          type: string
+        is_encrypted:
+          type: boolean
+        encryption_metadata:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        folder_id:
+          type: integer
+        priority:
+          type: string
+          enum: [low, medium, high]
+        status_column:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+
+    KanbanColumn:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        position:
+          type: integer
+    
+    KanbanColumnCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        position:
+          type: integer
+
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        content_type:
+          type: string
+        size:
+          type: integer
+        entry_id:
+          type: integer
+          description: "ID de la entrada a la que pertenece este recurso"
+
+    Folder:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        parent_id:
+          type: integer
+        is_encrypted:
+          type: boolean
+          default: false
+        encryption_metadata:
+          type: string
+    
+    FolderCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        parent_id:
+          type: integer
+        is_encrypted:
+          type: boolean
+          default: false
+        encryption_metadata:
+          type: string
+
     UserCreate:
       type: object
       required:
