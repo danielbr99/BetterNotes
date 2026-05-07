@@ -1,8 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Default to localhost for development, but this will be configurable in the UI
-const DEFAULT_BASE_URL = 'http://localhost:8000';
+// Default to the computer's local IP for network access from physical devices
+const DEFAULT_BASE_URL = 'http://192.168.64.71:8000';
 
 export const api = axios.create({
   baseURL: DEFAULT_BASE_URL,
