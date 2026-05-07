@@ -20,6 +20,7 @@ export default function Register() {
       ]);
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Error al registrarse');
+      console.log('Registration error:', error.stack);
     } finally {
       setLoading(false);
     }

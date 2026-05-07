@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Link, useRouter, Stack } from 'expo-router';
 import { api } from '../../src/services/api';
-import { Storage } from '../../src/services/storage';
+import { useAuth } from '../../src/context/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -23,7 +24,7 @@ export default function Login() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      await Storage.saveToken(response.data.access_token);
+      await login(response.data.access_token);
       router.replace('/');
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Error al iniciar sesión. Verifica tu conexión.');
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4A017',
     padding: 16,
     borderRadius: 12,
-    itemsCenter: 'center',
+    alignItems: 'center',
     marginBottom: 24,
   },
   buttonText: {

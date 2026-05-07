@@ -9,11 +9,20 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.middleware.cors import CORSMiddleware
 
-from .database import engine, Base, get_db
-from . import crud, schemas, auth
+from src.database import engine, Base, get_db
+from src import crud, schemas, auth
 
 app = FastAPI(title="Pro Notes API", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # En desarrollo es seguro usar "*"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 ASSETS_DIR = "assets"
 if not os.path.exists(ASSETS_DIR):

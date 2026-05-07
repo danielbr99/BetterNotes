@@ -1,23 +1,20 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Storage } from "../src/services/storage";
 import { setApiBaseUrl } from "../src/services/api";
+import { AuthProvider, useAuth } from "../src/context/AuthContext";
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+function RootLayoutNav() {
+  const { isAuthenticated } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     Storage.getServerUrl().then((url) => {
       if (url) setApiBaseUrl(url);
-    });
-
-    Storage.getToken().then((token) => {
-      setIsAuthenticated(!!token);
     });
   }, []);
 
@@ -34,22 +31,30 @@ export default function RootLayout() {
   }, [isAuthenticated, segments]);
 
   return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: "#F2F2F7",
+        },
+        headerShadowVisible: false,
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+        headerTintColor: "#D4A017",
+      }}
+    >
+      <Stack.Screen name="index" options={{ title: "Mis Notas" }} />
+      <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#F2F2F7",
-          },
-          headerShadowVisible: false,
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-          headerTintColor: "#D4A017",
-        }}
-      >
-        <Stack.Screen name="index" options={{ title: "Mis Notas" }} />
-        <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-      </Stack>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

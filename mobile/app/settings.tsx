@@ -5,7 +5,7 @@ import { Storage } from '../src/services/storage';
 import { setApiBaseUrl } from '../src/services/api';
 
 export default function Settings() {
-  const [url, setUrl] = useState('http://localhost:8000');
+  const [url, setUrl] = useState('http://10.0.2.2:8000');
   const router = useRouter();
 
   useEffect(() => {

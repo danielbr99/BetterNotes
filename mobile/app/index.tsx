@@ -3,16 +3,17 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshContr
 import { Stack, Link, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../src/services/api';
-import { Storage } from '../src/services/storage';
+import { useAuth } from '../src/context/AuthContext';
 import { LucideFolder, LucideFileText, LucideLayoutList, LucidePlus, LucideSettings, LucideSearch, LucideLogOut } from 'lucide-react-native';
 
 export default function Dashboard() {
   const [search, setSearch] = useState('');
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    await Storage.deleteToken();
+    await logout();
     queryClient.clear();
     router.replace('/auth/login');
   };

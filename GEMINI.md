@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-specs/002-user-auth/plan.md
+specs/004.1-mobile-auth-fix/plan.md
 <!-- SPECKIT END -->

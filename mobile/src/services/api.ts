@@ -1,11 +1,16 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Default to the computer's local IP for network access from physical devices
-const DEFAULT_BASE_URL = 'http://192.168.64.71:8000';
+import { Platform } from 'react-native';
+
+const API_URL = Platform.select({
+  android: 'http://10.0.2.2:8000', // IP para emulador
+  ios: 'http://localhost:8000',
+  default: 'http://192.168.8.163:8000', // Tu IP local para móvil físico
+});
 
 export const api = axios.create({
-  baseURL: DEFAULT_BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
