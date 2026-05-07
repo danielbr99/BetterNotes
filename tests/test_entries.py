@@ -402,3 +402,30 @@ async def test_automatic_asset_cleanup_on_entry_deletion():
                     found = True
                     break
         assert found is False
+
+@pytest.mark.asyncio
+async def test_task_is_completed():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        headers = await get_auth_header(ac, "user@example.com", "pass")
+        # Create a task with is_completed=True
+        resp = await ac.post("/entries", json={
+            "titulo": "Done Task", 
+            "contenido": "C1", 
+            "type": "task", 
+            "is_completed": True
+        }, headers=headers)
+        assert resp.status_code == 201
+        
+        # Get entries filtered by is_completed
+        resp = await ac.get("/entries?is_completed=true", headers=headers)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["titulo"] == "Done Task"
+        assert data[0]["is_completed"] is True
+
+        # Toggle is_completed
+        entry_id = data[0]["id"]
+        resp = await ac.patch(f"/entries/{entry_id}", json={"is_completed": False}, headers=headers)
+        assert resp.status_code == 200
+        assert resp.json()["is_completed"] is False

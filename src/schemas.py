@@ -51,6 +51,7 @@ class EntryCreate(EntryBase):
     priority: Optional[str] = None
     status_column: Optional[str] = None
     due_date: Optional[datetime] = None
+    is_completed: bool = False
 
 class EntryUpdate(BaseModel):
     titulo: Optional[str] = None
@@ -62,6 +63,7 @@ class EntryUpdate(BaseModel):
     priority: Optional[str] = None
     status_column: Optional[str] = None
     due_date: Optional[datetime] = None
+    is_completed: Optional[bool] = None
 
 class Entry(EntryBase):
     model_config = ConfigDict(from_attributes=True)
@@ -76,6 +78,7 @@ class Entry(EntryBase):
     priority: Optional[str] = None
     status_column: Optional[str] = None
     due_date: Optional[datetime] = None
+    is_completed: Optional[bool] = None
 
 class EntryResponse(BaseModel):
     message: str

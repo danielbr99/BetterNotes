@@ -35,10 +35,11 @@ class Entry(Base):
     folder_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("folders.id"), nullable=True)
     tags_raw: Mapped[Optional[str]] = mapped_column(Text, nullable=True) # Comma-separated tags
     
-    # Kanban fields (Task-specific)
+    # Kanban fields (Task-specific, in the same table)
     priority: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     status_column: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    is_completed: Mapped[Optional[bool]] = mapped_column(Boolean, default=False, nullable=True)
 
     owner: Mapped["User"] = relationship("User", back_populates="entries")
     assets: Mapped[List["Asset"]] = relationship("Asset", back_populates="entry", cascade="all, delete-orphan")

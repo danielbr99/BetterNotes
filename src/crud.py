@@ -40,7 +40,7 @@ async def create_entry(db: AsyncSession, entry: schemas.EntryCreate, user_id: in
         )
     else:
         # Exclude task-specific fields for notes
-        for field in ["priority", "status_column", "due_date"]:
+        for field in ["priority", "status_column", "due_date", "is_completed"]:
             entry_data.pop(field, None)
         db_entry = models.Note(
             **entry_data,
@@ -66,6 +66,7 @@ async def get_entries(
     type: Optional[str] = None,
     status_column: Optional[str] = None,
     priority: Optional[str] = None,
+    is_completed: Optional[bool] = None,
     is_encrypted: Optional[bool] = None,
     folder_id: Optional[int] = None,
     q: Optional[str] = None,
@@ -81,6 +82,9 @@ async def get_entries(
         query = query.filter(models.Entry.status_column == status_column)
     if priority:
         query = query.filter(models.Entry.priority == priority)
+    if is_completed is not None:
+        query = query.filter(models.Entry.is_completed == is_completed)
+        
     if is_encrypted is not None:
         query = query.filter(models.Entry.is_encrypted == is_encrypted)
     if folder_id:

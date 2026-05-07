@@ -69,6 +69,7 @@ async def list_entries(
     type: Optional[str] = None,
     status_column: Optional[str] = None,
     priority: Optional[str] = None,
+    is_completed: Optional[bool] = None,
     is_encrypted: Optional[bool] = None,
     folder_id: Optional[int] = None,
     q: Optional[str] = None,
@@ -85,6 +86,7 @@ async def list_entries(
         type=type,
         status_column=status_column,
         priority=priority,
+        is_completed=is_completed,
         is_encrypted=is_encrypted,
         folder_id=folder_id,
         q=q,
@@ -129,7 +131,7 @@ async def update_entry(
 
     # Validation: Only tasks can have Kanban metadata
     if db_entry.type == "note":
-        kanban_fields = ["priority", "status_column", "due_date"]
+        kanban_fields = ["priority", "status_column", "due_date", "is_completed"]
         if any(getattr(entry_update, field) is not None for field in kanban_fields):
             raise HTTPException(status_code=400, detail="Notes cannot have Kanban metadata")
 
