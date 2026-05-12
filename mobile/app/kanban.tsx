@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   taskHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'between',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
   priorityBadge: {
