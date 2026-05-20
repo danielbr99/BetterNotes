@@ -1,7 +1,7 @@
 {
-  "feature_directory": "specs/005-mobile-sidebar-menu",
-  "spec_file": "specs/005-mobile-sidebar-menu/spec.md",
-  "branch_name": "005-mobile-sidebar-menu",
-  "feature_num": "005",
-  "short_name": "mobile-sidebar-menu"
+  "feature_directory": "specs/006-folder-organization",
+  "spec_file": "specs/006-folder-organization/spec.md",
+  "branch_name": "006-folder-organization",
+  "feature_num": "006",
+  "short_name": "folder-organization"
 }
