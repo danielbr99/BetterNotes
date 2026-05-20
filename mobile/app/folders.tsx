@@ -9,6 +9,7 @@ export default function Folders() {
   const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
 
   const { data: folders, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['folders'],
@@ -25,8 +26,9 @@ export default function Folders() {
     }
 
     try {
-      await api.post('/folders', { name: newFolderName });
+      await api.post('/folders', { name: newFolderName, parent_id: selectedParentId });
       setNewFolderName('');
+      setSelectedParentId(null);
       setIsModalVisible(false);
       queryClient.invalidateQueries({ queryKey: ['folders'] });
       Alert.alert("Éxito", "Carpeta creada correctamente");
@@ -35,15 +37,50 @@ export default function Folders() {
     }
   };
 
-  const renderFolder = ({ item }: { item: any }) => (
-    <Link href={`/folder/${item.id}`} asChild>
-      <TouchableOpacity style={styles.folderCard}>
-        <LucideFolder color="#D4A017" size={24} style={{ marginRight: 16 }} />
-        <Text style={styles.folderName}>{item.name}</Text>
-        <LucideChevronRight color="#C7C7CC" size={20} />
-      </TouchableOpacity>
-    </Link>
-  );
+  const handleDeleteFolder = (folderId: number, folderName: string) => {
+    Alert.alert(
+      "Eliminar Carpeta",
+      `¿Estás seguro de que deseas eliminar la carpeta "${folderName}"? Se eliminarán todas las notas y tareas en su interior.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Eliminar", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/folders/${folderId}`);
+              queryClient.invalidateQueries({ queryKey: ['folders'] });
+              Alert.alert("Éxito", "Carpeta eliminada");
+            } catch (error) {
+              Alert.alert("Error", "No se pudo eliminar la carpeta");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const renderFolderItem = (folder: any, level = 0) => {
+    const children = folders?.filter((f: any) => f.parent_id === folder.id) || [];
+    
+    return (
+      <View key={`folder-${folder.id}`}>
+        <Link href={`/folder/${folder.id}`} asChild>
+          <TouchableOpacity 
+            style={[styles.folderCard, { marginLeft: 16 + (level * 24) }]}
+            onLongPress={() => handleDeleteFolder(folder.id, folder.name)}
+          >
+            <LucideFolder color="#D4A017" size={24} style={{ marginRight: 16 }} />
+            <Text style={styles.folderName}>{folder.name}</Text>
+            <LucideChevronRight color="#C7C7CC" size={20} />
+          </TouchableOpacity>
+        </Link>
+        {children.map((child: any) => renderFolderItem(child, level + 1))}
+      </View>
+    );
+  };
+
+  const rootFolders = folders?.filter((f: any) => !f.parent_id) || [];
 
   return (
     <View style={styles.container}>
@@ -53,9 +90,9 @@ export default function Folders() {
         </View>
       ) : (
         <FlatList
-          data={folders}
-          keyExtractor={(item) => `folder-${item.id}`}
-          renderItem={renderFolder}
+          data={rootFolders}
+          keyExtractor={(item) => `root-${item.id}`}
+          renderItem={({ item }) => renderFolderItem(item, 0)}
           contentContainerStyle={{ paddingVertical: 16 }}
           refreshControl={
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#D4A017" />
@@ -95,10 +132,36 @@ export default function Folders() {
               onChangeText={setNewFolderName}
               autoFocus={true}
             />
+            
+            <Text style={{fontWeight: '600', marginBottom: 8}}>Carpeta Padre (Opcional):</Text>
+            <View style={{maxHeight: 120, marginBottom: 24}}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TouchableOpacity 
+                  style={[styles.parentChip, selectedParentId === null && styles.parentChipActive]}
+                  onPress={() => setSelectedParentId(null)}
+                >
+                  <Text style={[styles.parentChipText, selectedParentId === null && styles.parentChipTextActive]}>Ninguna</Text>
+                </TouchableOpacity>
+                {folders?.map((f: any) => (
+                  <TouchableOpacity 
+                    key={f.id}
+                    style={[styles.parentChip, selectedParentId === f.id && styles.parentChipActive]}
+                    onPress={() => setSelectedParentId(f.id)}
+                  >
+                    <Text style={[styles.parentChipText, selectedParentId === f.id && styles.parentChipTextActive]}>{f.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.cancelButton]} 
-                onPress={() => setIsModalVisible(false)}
+                onPress={() => {
+                  setIsModalVisible(false);
+                  setNewFolderName('');
+                  setSelectedParentId(null);
+                }}
               >
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
@@ -221,4 +284,21 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '600',
   },
+  parentChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    marginRight: 8,
+  },
+  parentChipActive: {
+    backgroundColor: '#D4A017',
+  },
+  parentChipText: {
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+  parentChipTextActive: {
+    color: '#FFF',
+  }
 });

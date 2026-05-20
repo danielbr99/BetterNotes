@@ -411,6 +411,7 @@ paths:
       tags:
         - Organization
       summary: Eliminar una carpeta
+      description: Elimina una carpeta de forma recursiva, incluyendo todas las subcarpetas, notas y tareas en su interior (batch deletion).
       operationId: eliminarCarpeta
       parameters:
         - name: id

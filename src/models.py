@@ -115,5 +115,5 @@ class Folder(Base):
     encryption_metadata: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     owner: Mapped["User"] = relationship("User", back_populates="folders")
-    entries: Mapped[List["Entry"]] = relationship("Entry", back_populates="folder")
-    subfolders: Mapped[List["Folder"]] = relationship("Folder", backref="parent", remote_side=[id])
+    entries: Mapped[List["Entry"]] = relationship("Entry", back_populates="folder", cascade="all, delete-orphan")
+    subfolders: Mapped[List["Folder"]] = relationship("Folder", backref="parent", remote_side=[id], cascade="all, delete-orphan")

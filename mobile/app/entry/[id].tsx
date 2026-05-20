@@ -15,8 +15,17 @@ export default function EntryDetail() {
   const [contenido, setContenido] = useState('');
   const [password, setPassword] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [folderId, setFolderId] = useState<number | null>(null);
 
   const isNew = id === 'new';
+
+  const { data: folders } = useQuery({
+    queryKey: ['folders'],
+    queryFn: async () => {
+      const response = await api.get('/folders');
+      return response.data;
+    },
+  });
 
   const { data: entry, isLoading } = useQuery({
     queryKey: ['entry', id],
@@ -30,6 +39,7 @@ export default function EntryDetail() {
   useEffect(() => {
     if (entry) {
       setTitulo(entry.titulo);
+      setFolderId(entry.folder_id || null);
       if (!entry.is_encrypted) {
         setContenido(entry.contenido);
         setIsUnlocked(true);
@@ -74,7 +84,7 @@ export default function EntryDetail() {
       Alert.alert("Error", "El título es obligatorio");
       return;
     }
-    saveMutation.mutate({ titulo, contenido });
+    saveMutation.mutate({ titulo, contenido, folder_id: folderId });
   };
 
   if (isLoading) return <ActivityIndicator style={styles.loading} color="#D4A017" />;
@@ -111,6 +121,28 @@ export default function EntryDetail() {
           multiline
           placeholderTextColor="#8E8E93"
         />
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.folderSelector}>
+          <TouchableOpacity 
+            style={[styles.folderChip, folderId === null && styles.folderChipActive]}
+            onPress={() => setFolderId(null)}
+          >
+            <Text style={[styles.folderChipText, folderId === null && styles.folderChipTextActive]}>
+              Sin carpeta
+            </Text>
+          </TouchableOpacity>
+          {folders?.map((folder: any) => (
+            <TouchableOpacity 
+              key={folder.id}
+              style={[styles.folderChip, folderId === folder.id && styles.folderChipActive]}
+              onPress={() => setFolderId(folder.id)}
+            >
+              <Text style={[styles.folderChipText, folderId === folder.id && styles.folderChipTextActive]}>
+                {folder.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {entry?.is_encrypted && !isUnlocked ? (
           <View style={styles.lockedContainer}>
@@ -202,5 +234,26 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '700',
     fontSize: 16,
+  },
+  folderSelector: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  folderChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
+    marginRight: 8,
+  },
+  folderChipActive: {
+    backgroundColor: '#D4A017',
+  },
+  folderChipText: {
+    color: '#8E8E93',
+    fontWeight: '600',
+  },
+  folderChipTextActive: {
+    color: '#FFF',
   }
 });
