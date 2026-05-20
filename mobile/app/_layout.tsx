@@ -1,5 +1,6 @@
 import 'react-native-gesture-handler';
 import { Stack, useRouter, useSegments } from "expo-router";
+import { View } from "react-native";
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Storage } from "../src/services/storage";
@@ -25,25 +26,26 @@ function RootLayoutNav() {
     });
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated === null) return;
-
-    const inAuthGroup = segments[0] === "auth";
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace("/auth/login");
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace("/");
-    }
-  }, [isAuthenticated, segments]);
+  if (isAuthenticated === null) {
+    return null; // Don't render until we know the auth state
+  }
 
   if (!isAuthenticated) {
+    if (segments[0] !== "auth") {
+      import('expo-router').then(m => m.router.replace('/auth/login'));
+      return <View style={{ flex: 1, backgroundColor: '#F2F2F7' }} />;
+    }
     return (
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/register" />
       </Stack>
     );
+  }
+
+  if (isAuthenticated && segments[0] === "auth") {
+    import('expo-router').then(m => m.router.replace('/'));
+    return <View style={{ flex: 1, backgroundColor: '#F2F2F7' }} />;
   }
 
   return (

@@ -7,7 +7,7 @@ const API_URL = Platform.select({
   android: 'http://10.0.2.2:8000', // IP para emulador
   ios: 'http://localhost:8000',
   web: 'http://localhost:8000',
-  default: 'http://192.168.8.163:8000', // Tu IP local para móvil físico
+  default: 'http://192.168.65.52:8000', // Tu IP local para móvil físico
 });
 
 export const api = axios.create({
