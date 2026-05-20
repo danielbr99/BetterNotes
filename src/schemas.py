@@ -42,6 +42,7 @@ class EntryBase(BaseModel):
     contenido: str = Field(..., description="El contenido (texto enriquecido o blob cifrado)")
     type: str = Field(..., description="'note' o 'task'")
     is_encrypted: bool = False
+    is_deleted: bool = False
     encryption_metadata: Optional[str] = None
     tags: List[str] = []
     folder_id: Optional[int] = None
@@ -64,6 +65,7 @@ class EntryUpdate(BaseModel):
     status_column: Optional[str] = None
     due_date: Optional[datetime] = None
     is_completed: Optional[bool] = None
+    is_deleted: Optional[bool] = None
 
 class Entry(EntryBase):
     model_config = ConfigDict(from_attributes=True)

@@ -11,12 +11,21 @@ Hey! Here is the status of the **BetterNotes** project as of April 28, 2026. We 
     *   **JWT Security**: All note endpoints are now protected.
     *   **Registration/Login**: `/auth/register` and `/auth/token` are functional.
     *   **Resource Ownership**: Users can only see and manage their own notes.
+3.  **Kanban & Rich Notes (`specs/003-kanban-rich-notes`)**:
+    *   **Task Support**: Notes can be categorized as 'tasks' with priority and status.
+    *   **Kanban View**: Backend support for columns and task movement.
+    *   **Encrypted Notes**: Client-side encryption support with metadata storage.
+4.  **Mobile Sidebar & Trash (`specs/005-mobile-sidebar-menu`)**:
+    *   **Drawer Navigation**: Centralized menu for Folders, All Notes, Kanban, and Trash.
+    *   **FAB**: New Floating Action Button for quick entry creation.
+    *   **Soft Delete**: Trash mechanism with restore and permanent delete functionality.
 
 ## 🛠 Tech Stack
 - **Backend**: Python 3.12, FastAPI.
+- **Mobile**: Expo (React Native), Tamagui, Gluestack-UI, React Query.
 - **Database**: SQLite (local-first).
 - **Security**: JWT (python-jose) + Bcrypt (password hashing).
-- **Testing**: Pytest (Async).
+- **Testing**: Pytest (Backend).
 
 ## 💡 How to pick up where we left off
 1.  **Sync**: Pull the latest changes from the repo.

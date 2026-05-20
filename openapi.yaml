@@ -103,6 +103,11 @@ paths:
           in: query
           schema:
             type: integer
+        - name: is_deleted
+          in: query
+          schema:
+            type: boolean
+            default: false
         - name: sort_by
           in: query
           schema:
@@ -195,7 +200,7 @@ paths:
     delete:
       tags:
         - Entries
-      summary: Eliminar una entrada específica
+      summary: Eliminar permanentemente una entrada (solo si está en la papelera)
       operationId: eliminarEntry
       parameters:
         - name: id
@@ -205,7 +210,62 @@ paths:
             type: integer
       responses:
         '204':
-          description: Eliminado.
+          description: Eliminado permanentemente.
+        '400':
+          description: Solo se pueden eliminar permanentemente elementos de la papelera.
+
+  /entries/trash:
+    get:
+      tags:
+        - Entries
+      summary: Listar elementos de la papelera
+      operationId: listarTrash
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entry'
+
+  /entries/{id}/trash:
+    post:
+      tags:
+        - Entries
+      summary: Mover una entrada a la papelera (soft delete)
+      operationId: trashEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+
+  /entries/{id}/restore:
+    post:
+      tags:
+        - Entries
+      summary: Restaurar una entrada de la papelera
+      operationId: restoreEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
 
   /assets:
     post:
@@ -394,6 +454,9 @@ components:
         is_encrypted:
           type: boolean
           default: false
+        is_deleted:
+          type: boolean
+          default: false
         encryption_metadata:
           type: string
           description: "JSON string containing client-side encryption metadata (IV, salt, algorithm hints)"
@@ -433,6 +496,8 @@ components:
         contenido:
           type: string
         is_encrypted:
+          type: boolean
+        is_deleted:
           type: boolean
         encryption_metadata:
           type: string

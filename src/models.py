@@ -31,6 +31,7 @@ class Entry(Base):
     # Polymorphism and extra fields
     type: Mapped[str] = mapped_column(String(50)) # 'note' or 'task'
     is_encrypted: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     encryption_metadata: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     folder_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("folders.id"), nullable=True)
     tags_raw: Mapped[Optional[str]] = mapped_column(Text, nullable=True) # Comma-separated tags

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../src/services/api';
 import { LucideChevronRight } from 'lucide-react-native';
 
+
 export default function KanbanBoard() {
   const { data: columns, isLoading: colsLoading } = useQuery({
     queryKey: ['columns'],

@@ -81,6 +81,7 @@ async def list_entries(
     is_completed: Optional[bool] = None,
     is_encrypted: Optional[bool] = None,
     folder_id: Optional[int] = None,
+    is_deleted: Optional[bool] = False,
     q: Optional[str] = None,
     sort_by: str = "fecha_creacion",
     order: str = "desc",
@@ -98,11 +99,54 @@ async def list_entries(
         is_completed=is_completed,
         is_encrypted=is_encrypted,
         folder_id=folder_id,
+        is_deleted=is_deleted,
         q=q,
         sort_by=sort_by,
         order=order
     )
     return entries
+
+@app.get("/entries/trash", response_model=list[schemas.Entry])
+async def list_trash(
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_user)
+):
+    entries = await crud.get_entries(
+        db,
+        user_id=current_user.id,
+        skip=skip,
+        limit=limit,
+        is_deleted=True
+    )
+    return entries
+
+@app.post("/entries/{id}/trash", response_model=schemas.Entry)
+async def trash_entry(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_user)
+):
+    db_entry = await crud.get_entry(db, entry_id=id, user_id=current_user.id)
+    if not db_entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    update_data = schemas.EntryUpdate(is_deleted=True)
+    return await crud.update_entry(db, db_entry=db_entry, entry_update=update_data)
+
+@app.post("/entries/{id}/restore", response_model=schemas.Entry)
+async def restore_entry(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: schemas.User = Depends(auth.get_current_user)
+):
+    db_entry = await crud.get_entry(db, entry_id=id, user_id=current_user.id)
+    if not db_entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    update_data = schemas.EntryUpdate(is_deleted=False)
+    return await crud.update_entry(db, db_entry=db_entry, entry_update=update_data)
 
 @app.post("/entries", response_model=schemas.EntryResponse, status_code=status.HTTP_201_CREATED)
 async def create_entry(
@@ -155,6 +199,13 @@ async def delete_entry(
     db_entry = await crud.get_entry(db, entry_id=id, user_id=current_user.id)
     if not db_entry:
         raise HTTPException(status_code=404, detail="Entry not found")
+    
+    if not db_entry.is_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Solo se pueden eliminar permanentemente elementos de la papelera."
+        )
+        
     await crud.delete_entry(db, db_entry=db_entry)
     return None
 

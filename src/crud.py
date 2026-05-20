@@ -68,6 +68,7 @@ async def get_entries(
     priority: Optional[str] = None,
     is_completed: Optional[bool] = None,
     is_encrypted: Optional[bool] = None,
+    is_deleted: Optional[bool] = False,
     folder_id: Optional[int] = None,
     q: Optional[str] = None,
     sort_by: str = "fecha_creacion",
@@ -76,6 +77,8 @@ async def get_entries(
     query = select(models.Entry).filter(models.Entry.user_id == user_id)
     
     # Filtering
+    if is_deleted is not None:
+        query = query.filter(models.Entry.is_deleted == is_deleted)
     if type:
         query = query.filter(models.Entry.type == type)
     if status_column:

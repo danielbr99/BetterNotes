@@ -1,22 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert, StyleSheet } from 'react-native';
-import { Stack, Link, useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../src/services/api';
-import { useAuth } from '../src/context/AuthContext';
-import { LucideFolder, LucideFileText, LucideLayoutList, LucidePlus, LucideSettings, LucideSearch, LucideLogOut } from 'lucide-react-native';
+import { LucideFolder, LucideFileText, LucideLayoutList, LucidePlus, LucideSearch } from 'lucide-react-native';
 
 export default function Dashboard() {
   const [search, setSearch] = useState('');
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    queryClient.clear();
-    router.replace('/auth/login');
-  };
 
   const { data: entries, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['entries', search],
@@ -91,33 +83,6 @@ export default function Dashboard() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Link href="/kanban" asChild>
-                <TouchableOpacity style={{ marginRight: 16 }}>
-                  <LucideLayoutList color="#D4A017" size={24} />
-                </TouchableOpacity>
-              </Link>
-              <Link href="/settings" asChild>
-                <TouchableOpacity style={{ marginRight: 16 }}>
-                  <LucideSettings color="#D4A017" size={24} />
-                </TouchableOpacity>
-              </Link>
-              <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
-                <LucideLogOut color="#FF3B30" size={24} />
-              </TouchableOpacity>
-            </View>
-          ),
-          headerLeft: () => (
-            <TouchableOpacity style={{ marginLeft: 16 }} onPress={handleCreateEntry}>
-              <LucidePlus color="#D4A017" size={24} />
-            </TouchableOpacity>
-          )
-        }} 
-      />
-
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <LucideSearch color="#8E8E93" size={18} />
@@ -171,6 +136,15 @@ export default function Dashboard() {
           )}
         />
       )}
+
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={handleCreateEntry}
+        activeOpacity={0.8}
+      >
+        <LucidePlus color="#FFF" size={32} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -263,5 +237,21 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 17,
     color: '#8E8E93',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    backgroundColor: '#D4A017',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
   }
 });
