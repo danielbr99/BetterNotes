@@ -1,22 +1,46 @@
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'userToken';
 const SERVER_URL_KEY = 'serverUrl';
 
+const isWeb = Platform.OS === 'web';
+
 export const Storage = {
   saveToken: async (token: string) => {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    if (isWeb) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+    }
   },
   getToken: async () => {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
+    if (isWeb) {
+      return localStorage.getItem(TOKEN_KEY);
+    } else {
+      return await SecureStore.getItemAsync(TOKEN_KEY);
+    }
   },
   deleteToken: async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    if (isWeb) {
+      localStorage.removeItem(TOKEN_KEY);
+    } else {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+    }
   },
   saveServerUrl: async (url: string) => {
-    await SecureStore.setItemAsync(SERVER_URL_KEY, url);
+    if (isWeb) {
+      localStorage.setItem(SERVER_URL_KEY, url);
+    } else {
+      await SecureStore.setItemAsync(SERVER_URL_KEY, url);
+    }
   },
   getServerUrl: async () => {
-    return await SecureStore.getItemAsync(SERVER_URL_KEY);
+    if (isWeb) {
+      return localStorage.getItem(SERVER_URL_KEY);
+    } else {
+      return await SecureStore.getItemAsync(SERVER_URL_KEY);
+    }
   },
 };
+

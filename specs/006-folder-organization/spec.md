@@ -18,7 +18,7 @@ As a user, I want to create, rename, and delete folders so that I can establish 
 **Acceptance Scenarios**:
 
 1. **Given** I am on the dashboard, **When** I click "New Folder" and provide a name, **Then** a new empty folder is created and displayed.
-2. **Given** an existing folder, **When** I choose to delete it, **Then** the folder is removed [NEEDS CLARIFICATION: What happens to the items inside the folder? Are they deleted or moved to the root?].
+2. **Given** an existing folder, **When** I choose to delete it, **Then** the folder is removed and all notes, tasks, and subfolders inside it are also deleted (recursive/batch deletion).
 
 ---
 

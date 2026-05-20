@@ -11,7 +11,7 @@
 
 ## Ambiguities
 
-- [ ] REQ003 Resolved [NEEDS CLARIFICATION] regarding folder deletion behavior (Cascade delete vs Root move).
+- [x] REQ003 Resolved [NEEDS CLARIFICATION] regarding folder deletion behavior (Cascade delete vs Root move).
 
 ## Edge Cases
 

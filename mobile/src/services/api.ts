@@ -1,11 +1,12 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { Storage } from './storage';
 
 import { Platform } from 'react-native';
 
 const API_URL = Platform.select({
   android: 'http://10.0.2.2:8000', // IP para emulador
   ios: 'http://localhost:8000',
+  web: 'http://localhost:8000',
   default: 'http://192.168.8.163:8000', // Tu IP local para móvil físico
 });
 
@@ -16,9 +17,9 @@ export const api = axios.create({
   },
 });
 
-// Interceptor to inject the JWT token from SecureStore
+// Interceptor to inject the JWT token from Storage
 api.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync('userToken');
+  const token = await Storage.getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
