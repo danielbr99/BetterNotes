@@ -116,4 +116,5 @@ class Folder(Base):
 
     owner: Mapped["User"] = relationship("User", back_populates="folders")
     entries: Mapped[List["Entry"]] = relationship("Entry", back_populates="folder", cascade="all, delete-orphan")
-    subfolders: Mapped[List["Folder"]] = relationship("Folder", backref="parent", remote_side=[id], cascade="all, delete-orphan")
+    parent: Mapped[Optional["Folder"]] = relationship("Folder", remote_side=[id], back_populates="subfolders")
+    subfolders: Mapped[List["Folder"]] = relationship("Folder", back_populates="parent", cascade="all, delete-orphan")

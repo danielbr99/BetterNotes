@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { api } from '../../src/services/api';
 
@@ -15,11 +15,21 @@ export default function Register() {
     
     try {
       await api.post('/auth/register', { email, password });
-      Alert.alert('Éxito', 'Cuenta creada correctamente. Ya puedes iniciar sesión.', [
-        { text: 'Ir al Login', onPress: () => router.back() }
-      ]);
+      if (Platform.OS === 'web') {
+        window.alert('Cuenta creada correctamente. Ya puedes iniciar sesión.');
+        router.replace('/auth/login');
+      } else {
+        Alert.alert('Éxito', 'Cuenta creada correctamente. Ya puedes iniciar sesión.', [
+          { text: 'Ir al Login', onPress: () => router.replace('/auth/login') }
+        ]);
+      }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Error al registrarse');
+      const errorMsg = error.response?.data?.detail || 'Error al registrarse';
+      if (Platform.OS === 'web') {
+        window.alert('Error: ' + errorMsg);
+      } else {
+        Alert.alert('Error', errorMsg);
+      }
       console.log('Registration error:', error.stack);
     } finally {
       setLoading(false);
