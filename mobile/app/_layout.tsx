@@ -112,6 +112,20 @@ function RootLayoutNav() {
           title: "Carpeta",
         }}
       />
+      <Drawer.Screen
+        name="auth/login"
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: "Login",
+        }}
+      />
+      <Drawer.Screen
+        name="auth/register"
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: "Registro",
+        }}
+      />
     </Drawer>
   );
 }
