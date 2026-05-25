@@ -62,7 +62,7 @@ export default function Register() {
       />
 
       <TouchableOpacity 
-        style={[styles.button, loading && { opacity: 0.7 }]}
+        style={StyleSheet.flatten([styles.button, loading && { opacity: 0.7 }])}
         onPress={handleRegister}
         disabled={loading}
       >

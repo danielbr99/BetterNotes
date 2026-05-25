@@ -1,8 +1,22 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, StyleSheet, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../src/services/api';
 import { LucideFileText, LucideLayoutList, LucideRotateCcw, LucideTrash2 } from 'lucide-react-native';
+
+const webAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    if (buttons && buttons.length > 0) {
+      const actionButton = buttons.find(b => b.style !== 'cancel' && b.text !== 'Cancelar');
+      if (actionButton && actionButton.onPress) {
+        actionButton.onPress();
+      }
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function Trash() {
   const queryClient = useQueryClient();
@@ -20,14 +34,14 @@ export default function Trash() {
       await api.post(`/entries/${id}/restore`);
       queryClient.invalidateQueries({ queryKey: ['entries'] });
       queryClient.invalidateQueries({ queryKey: ['trash'] });
-      Alert.alert("Éxito", "Nota restaurada correctamente");
+      webAlert("Éxito", "Nota restaurada correctamente");
     } catch (error) {
-      Alert.alert("Error", "No se pudo restaurar la nota");
+      webAlert("Error", "No se pudo restaurar la nota");
     }
   };
 
   const handlePermanentDelete = async (id: number) => {
-    Alert.alert(
+    webAlert(
       "Eliminar Permanentemente",
       "¿Estás seguro? Esta acción no se puede deshacer.",
       [
@@ -40,7 +54,7 @@ export default function Trash() {
               await api.delete(`/entries/${id}`);
               queryClient.invalidateQueries({ queryKey: ['trash'] });
             } catch (error) {
-              Alert.alert("Error", "No se pudo eliminar la nota");
+              webAlert("Error", "No se pudo eliminar la nota");
             }
           }
         }

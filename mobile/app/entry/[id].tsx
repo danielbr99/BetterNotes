@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../src/services/api';
 import { LucideSave, LucideLock, LucideUnlock, LucideTrash } from 'lucide-react-native';
 import { Encryption } from '../../src/services/encryption';
+
+const webAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    if (buttons && buttons.length > 0) {
+      const okButton = buttons.find(b => b.text === 'OK' || b.text === 'Eliminar');
+      if (okButton && okButton.onPress) {
+        okButton.onPress();
+      }
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function EntryDetail() {
   const { id, type } = useLocalSearchParams();
@@ -58,9 +72,14 @@ export default function EntryDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
-      Alert.alert("Éxito", "Cambios guardados", [
+      webAlert("Éxito", "Cambios guardados", [
         { text: "OK", onPress: () => isNew && router.back() }
       ]);
+    },
+    onError: (error: any) => {
+      console.error("Save error:", error);
+      const message = error.response?.data?.detail || error.message || "Error desconocido";
+      webAlert("Error", `No se pudo guardar: ${message}`, [{ text: "OK" }]);
     }
   });
 
@@ -69,6 +88,9 @@ export default function EntryDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
       router.back();
+    },
+    onError: (error: any) => {
+      webAlert("Error", "No se pudo eliminar", [{ text: "OK" }]);
     }
   });
 
@@ -81,7 +103,7 @@ export default function EntryDetail() {
 
   const handleSave = () => {
     if (!titulo) {
-      Alert.alert("Error", "El título es obligatorio");
+      webAlert("Error", "El título es obligatorio", [{ text: "OK" }]);
       return;
     }
     saveMutation.mutate({ titulo, contenido, folder_id: folderId });
@@ -95,17 +117,24 @@ export default function EntryDetail() {
         options={{ 
           title: (entry?.type || type) === 'task' ? "Tarea" : "Nota",
           headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {saveMutation.isPending && (
+                <ActivityIndicator size="small" color="#D4A017" style={{ marginRight: 16 }} />
+              )}
               {!isNew && (
-                <TouchableOpacity onPress={() => Alert.alert("Confirmar", "¿Eliminar nota?", [
+                <TouchableOpacity onPress={() => webAlert("Confirmar", "¿Eliminar nota?", [
                   { text: "Cancelar" },
                   { text: "Eliminar", onPress: () => deleteMutation.mutate() }
                 ])}>
                   <LucideTrash color="#FF3B30" size={24} style={{ marginRight: 16 }} />
                 </TouchableOpacity>
               )}
-              <TouchableOpacity onPress={handleSave}>
-                <LucideSave color="#D4A017" size={24} style={{ marginRight: 16 }} />
+              <TouchableOpacity onPress={handleSave} disabled={saveMutation.isPending}>
+                <LucideSave 
+                  color={saveMutation.isPending ? "#8E8E93" : "#D4A017"} 
+                  size={24} 
+                  style={{ marginRight: 16 }} 
+                />
               </TouchableOpacity>
             </View>
           )
@@ -124,20 +153,20 @@ export default function EntryDetail() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.folderSelector}>
           <TouchableOpacity 
-            style={[styles.folderChip, folderId === null && styles.folderChipActive]}
+            style={StyleSheet.flatten([styles.folderChip, folderId === null && styles.folderChipActive])}
             onPress={() => setFolderId(null)}
           >
-            <Text style={[styles.folderChipText, folderId === null && styles.folderChipTextActive]}>
+            <Text style={StyleSheet.flatten([styles.folderChipText, folderId === null && styles.folderChipTextActive])}>
               Sin carpeta
             </Text>
           </TouchableOpacity>
           {folders?.map((folder: any) => (
             <TouchableOpacity 
               key={folder.id}
-              style={[styles.folderChip, folderId === folder.id && styles.folderChipActive]}
+              style={StyleSheet.flatten([styles.folderChip, folderId === folder.id && styles.folderChipActive])}
               onPress={() => setFolderId(folder.id)}
             >
-              <Text style={[styles.folderChipText, folderId === folder.id && styles.folderChipTextActive]}>
+              <Text style={StyleSheet.flatten([styles.folderChipText, folderId === folder.id && styles.folderChipTextActive])}>
                 {folder.name}
               </Text>
             </TouchableOpacity>

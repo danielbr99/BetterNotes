@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, StyleSheet, TextInput, Modal, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, StyleSheet, TextInput, Modal, ScrollView, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../src/services/api';
 import { LucideFolder, LucidePlus, LucideChevronRight } from 'lucide-react-native';
+
+const webAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    if (buttons && buttons.length > 0) {
+      // Find the first non-cancel button and run its onPress
+      const actionButton = buttons.find(b => b.style !== 'cancel');
+      if (actionButton && actionButton.onPress) {
+        actionButton.onPress();
+      }
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function Folders() {
   const queryClient = useQueryClient();
@@ -21,7 +36,7 @@ export default function Folders() {
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) {
-      Alert.alert("Error", "El nombre de la carpeta no puede estar vacío");
+      webAlert("Error", "El nombre de la carpeta no puede estar vacío");
       return;
     }
 
@@ -31,14 +46,14 @@ export default function Folders() {
       setSelectedParentId(null);
       setIsModalVisible(false);
       queryClient.invalidateQueries({ queryKey: ['folders'] });
-      Alert.alert("Éxito", "Carpeta creada correctamente");
+      webAlert("Éxito", "Carpeta creada correctamente");
     } catch (error) {
-      Alert.alert("Error", "No se pudo crear la carpeta");
+      webAlert("Error", "No se pudo crear la carpeta");
     }
   };
 
   const handleDeleteFolder = (folderId: number, folderName: string) => {
-    Alert.alert(
+    webAlert(
       "Eliminar Carpeta",
       `¿Estás seguro de que deseas eliminar la carpeta "${folderName}"? Se eliminarán todas las notas y tareas en su interior.`,
       [
@@ -50,9 +65,9 @@ export default function Folders() {
             try {
               await api.delete(`/folders/${folderId}`);
               queryClient.invalidateQueries({ queryKey: ['folders'] });
-              Alert.alert("Éxito", "Carpeta eliminada");
+              webAlert("Éxito", "Carpeta eliminada");
             } catch (error) {
-              Alert.alert("Error", "No se pudo eliminar la carpeta");
+              webAlert("Error", "No se pudo eliminar la carpeta");
             }
           }
         }
@@ -67,7 +82,7 @@ export default function Folders() {
       <View key={`folder-${folder.id}`}>
         <Link href={`/folder/${folder.id}`} asChild>
           <TouchableOpacity 
-            style={[styles.folderCard, { marginLeft: 16 + (level * 24) }]}
+            style={StyleSheet.flatten([styles.folderCard, { marginLeft: 16 + (level * 24) }])}
             onLongPress={() => handleDeleteFolder(folder.id, folder.name)}
           >
             <LucideFolder color="#D4A017" size={24} style={{ marginRight: 16 }} />
@@ -137,18 +152,18 @@ export default function Folders() {
             <View style={{maxHeight: 120, marginBottom: 24}}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <TouchableOpacity 
-                  style={[styles.parentChip, selectedParentId === null && styles.parentChipActive]}
+                  style={StyleSheet.flatten([styles.parentChip, selectedParentId === null && styles.parentChipActive])}
                   onPress={() => setSelectedParentId(null)}
                 >
-                  <Text style={[styles.parentChipText, selectedParentId === null && styles.parentChipTextActive]}>Ninguna</Text>
+                  <Text style={StyleSheet.flatten([styles.parentChipText, selectedParentId === null && styles.parentChipTextActive])}>Ninguna</Text>
                 </TouchableOpacity>
                 {folders?.map((f: any) => (
                   <TouchableOpacity 
                     key={f.id}
-                    style={[styles.parentChip, selectedParentId === f.id && styles.parentChipActive]}
+                    style={StyleSheet.flatten([styles.parentChip, selectedParentId === f.id && styles.parentChipActive])}
                     onPress={() => setSelectedParentId(f.id)}
                   >
-                    <Text style={[styles.parentChipText, selectedParentId === f.id && styles.parentChipTextActive]}>{f.name}</Text>
+                    <Text style={StyleSheet.flatten([styles.parentChipText, selectedParentId === f.id && styles.parentChipTextActive])}>{f.name}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -156,7 +171,7 @@ export default function Folders() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
+                style={StyleSheet.flatten([styles.modalButton, styles.cancelButton])} 
                 onPress={() => {
                   setIsModalVisible(false);
                   setNewFolderName('');
@@ -166,7 +181,7 @@ export default function Folders() {
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.modalButton, styles.createButton]} 
+                style={StyleSheet.flatten([styles.modalButton, styles.createButton])} 
                 onPress={handleCreateFolder}
               >
                 <Text style={styles.createButtonText}>Crear</Text>

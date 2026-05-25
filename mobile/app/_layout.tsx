@@ -1,19 +1,64 @@
 import 'react-native-gesture-handler';
 import { Stack, useRouter, useSegments } from "expo-router";
-import { View } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useEffect } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Storage } from "../src/services/storage";
-import { setApiBaseUrl } from "../src/services/api";
+import { api, setApiBaseUrl } from "../src/services/api";
 import { AuthProvider, useAuth } from "../src/context/AuthContext";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from "expo-router/drawer";
+import { DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import { TamaguiProvider } from 'tamagui';
 import config from '../src/theme/tamagui.config';
 import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { config as gluestackConfig } from "@gluestack-ui/config";
+import { LucideFolder, LucideChevronRight } from 'lucide-react-native';
 
 const queryClient = new QueryClient();
+
+function CustomDrawerContent(props: any) {
+  const router = useRouter();
+  const { data: folders } = useQuery({
+    queryKey: ['folders'],
+    queryFn: async () => {
+      const response = await api.get('/folders');
+      return response.data;
+    },
+  });
+
+  const renderFolderItems = (parentId: number | null = null, level = 0) => {
+    return folders
+      ?.filter((f: any) => f.parent_id === parentId)
+      .map((folder: any) => (
+        <View key={folder.id}>
+          <DrawerItem
+            label={folder.name}
+            onPress={() => router.push(`/folder/${folder.id}`)}
+            icon={({ color, size }) => (
+              <LucideFolder color={color} size={size - 4} style={{ marginLeft: level * 12 }} />
+            )}
+            labelStyle={{ fontSize: 14, marginLeft: -20 }}
+            inactiveTintColor="#8E8E93"
+            activeTintColor="#D4A017"
+          />
+          {renderFolderItems(folder.id, level + 1)}
+        </View>
+      ));
+  };
+
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+      <View style={{ paddingHorizontal: 16, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#F2F2F7', marginTop: 8 }}>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', marginBottom: 8 }}>
+          Carpetas
+        </Text>
+      </View>
+      {renderFolderItems()}
+    </DrawerContentScrollView>
+  );
+}
 
 function RootLayoutNav() {
   const { isAuthenticated } = useAuth();
@@ -50,6 +95,7 @@ function RootLayoutNav() {
 
   return (
     <Drawer
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerStyle: {
           backgroundColor: "#F2F2F7",

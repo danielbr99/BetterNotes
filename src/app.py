@@ -148,14 +148,13 @@ async def restore_entry(
     update_data = schemas.EntryUpdate(is_deleted=False)
     return await crud.update_entry(db, db_entry=db_entry, entry_update=update_data)
 
-@app.post("/entries", response_model=schemas.EntryResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/entries", response_model=schemas.Entry, status_code=status.HTTP_201_CREATED)
 async def create_entry(
     entry: schemas.EntryCreate, 
     db: AsyncSession = Depends(get_db),
     current_user: schemas.User = Depends(auth.get_current_user)
 ):
-    await crud.create_entry(db=db, entry=entry, user_id=current_user.id)
-    return {"message": f"{entry.type.capitalize()} creada con éxito."}
+    return await crud.create_entry(db=db, entry=entry, user_id=current_user.id)
 
 @app.get("/entries/{id}", response_model=schemas.Entry)
 async def get_entry(

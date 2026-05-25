@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Storage } from '../src/services/storage';
 import { setApiBaseUrl } from '../src/services/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { LucideServer, LucideLogOut, LucideChevronRight } from 'lucide-react-native';
+
+const webAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    if (buttons && buttons.length > 0) {
+      const actionButton = buttons.find(b => b.style !== 'cancel' && b.text !== 'Cancelar');
+      if (actionButton && actionButton.onPress) {
+        actionButton.onPress();
+      }
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function Settings() {
   const [url, setUrl] = useState('http://10.0.2.2:8000');
@@ -22,17 +36,23 @@ export default function Settings() {
 
   const handleSave = async () => {
     if (!url.startsWith('http')) {
-      Alert.alert('Error', 'La URL debe empezar con http:// o https://');
+      webAlert('Error', 'La URL debe empezar con http:// o https://');
       return;
     }
     await Storage.saveServerUrl(url);
     setApiBaseUrl(url);
     setIsEditingUrl(false);
-    Alert.alert('Éxito', 'Configuración guardada correctamente');
+    webAlert('Éxito', 'Configuración guardada correctamente');
   };
 
   const handleLogout = async () => {
-    Alert.alert(
+    const performLogout = async () => {
+      await logout();
+      queryClient.clear();
+      router.replace('/auth/login');
+    };
+
+    webAlert(
       "Cerrar Sesión",
       "¿Estás seguro de que deseas salir?",
       [
@@ -40,11 +60,7 @@ export default function Settings() {
         { 
           text: "Salir", 
           style: "destructive",
-          onPress: async () => {
-            await logout();
-            queryClient.clear();
-            router.replace('/auth/login');
-          }
+          onPress: performLogout
         }
       ]
     );
@@ -87,7 +103,7 @@ export default function Settings() {
         <TouchableOpacity style={styles.card} onPress={handleLogout}>
           <View style={styles.infoRow}>
             <LucideLogOut color="#FF3B30" size={20} style={{ marginRight: 12 }} />
-            <Text style={[styles.label, { color: '#FF3B30', flex: 1 }]}>Cerrar Sesión</Text>
+            <Text style={StyleSheet.flatten([styles.label, { color: '#FF3B30', flex: 1 }])}>Cerrar Sesión</Text>
             <LucideChevronRight color="#C7C7CC" size={20} />
           </View>
         </TouchableOpacity>

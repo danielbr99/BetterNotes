@@ -34,7 +34,7 @@ async def test_create_note_entry():
         )
     
     assert response.status_code == 201
-    assert response.json()["message"] == "Note creada con éxito."
+    assert response.json()["titulo"] == "Test Note"
 
 @pytest.mark.asyncio
 async def test_create_task_entry():
@@ -53,7 +53,7 @@ async def test_create_task_entry():
         )
     
     assert response.status_code == 201
-    assert response.json() == {"message": "Task creada con éxito."}
+    assert response.json()["titulo"] == "Test Task"
 
 @pytest.mark.asyncio
 async def test_list_entries_mixed_types():
@@ -302,6 +302,40 @@ async def test_folders_hierarchy():
         assert len(resp.json()) == 2
 
 @pytest.mark.asyncio
+async def test_folders_cascade_deletion():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        headers = await get_auth_header(ac, "user@example.com", "pass")
+        
+        # 1. Create hierarchy: Parent -> Subfolder -> Entry
+        resp = await ac.post("/folders", json={"name": "Parent"}, headers=headers)
+        parent_id = resp.json()["id"]
+        
+        resp = await ac.post("/folders", json={"name": "Sub", "parent_id": parent_id}, headers=headers)
+        sub_id = resp.json()["id"]
+        
+        resp = await ac.post("/entries", json={
+            "titulo": "Nested Note", 
+            "contenido": "...", 
+            "type": "note",
+            "folder_id": sub_id
+        }, headers=headers)
+        entry_id = resp.json()["id"]
+        
+        # 2. Delete Parent
+        resp = await ac.delete(f"/folders/{parent_id}", headers=headers)
+        assert resp.status_code == 204
+        
+        # 3. Verify subfolder and entry are gone
+        resp = await ac.get("/folders", headers=headers)
+        # Assuming other tests might have run, we check that parent and sub are NOT in the list
+        folder_ids = [f["id"] for f in resp.json()]
+        assert parent_id not in folder_ids
+        assert sub_id not in folder_ids
+        
+        resp = await ac.get(f"/entries/{entry_id}", headers=headers)
+        assert resp.status_code == 404
+
+@pytest.mark.asyncio
 async def test_multi_tag_assignment():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         headers = await get_auth_header(ac, "user@example.com", "pass")
@@ -390,11 +424,14 @@ async def test_automatic_asset_cleanup_on_entry_deletion():
                 break
         assert found is True
         
-        # 4. Delete Entry (should trigger asset deletion via cascade + listener)
+        # 4. Trash Entry first (required by API)
+        await ac.post("/entries/1/trash", headers=headers)
+        
+        # 5. Delete Entry (should trigger asset deletion via cascade + listener)
         del_resp = await ac.delete("/entries/1", headers=headers)
         assert del_resp.status_code == 204
         
-        # 5. Verify file is gone from disk
+        # 6. Verify file is gone from disk
         found = False
         if os.path.exists(ASSETS_DIR):
             for f in os.listdir(ASSETS_DIR):

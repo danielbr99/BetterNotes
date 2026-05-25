@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { Link, useRouter, Stack } from 'expo-router';
 import { api } from '../../src/services/api';
 import { useAuth } from '../../src/context/AuthContext';
+
+const webAlert = (title: string, message: string, buttons?: any[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}: ${message}`);
+    if (buttons && buttons.length > 0) {
+      const actionButton = buttons.find(b => b.style !== 'cancel' && b.text !== 'Cancelar');
+      if (actionButton && actionButton.onPress) {
+        actionButton.onPress();
+      }
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -27,7 +41,7 @@ export default function Login() {
       await login(response.data.access_token);
       router.replace('/');
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Error al iniciar sesión. Verifica tu conexión.');
+      webAlert('Error', error.response?.data?.detail || 'Error al iniciar sesión. Verifica tu conexión.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +79,7 @@ export default function Login() {
       />
 
       <TouchableOpacity 
-        style={[styles.button, loading && { opacity: 0.7 }]}
+        style={StyleSheet.flatten([styles.button, loading && { opacity: 0.7 }])}
         onPress={handleLogin}
         disabled={loading}
       >
